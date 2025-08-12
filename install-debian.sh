@@ -163,7 +163,7 @@ h20-logout() (
 # h20-pass
 # --------
 # A deterministic password generator
-# - Formula is: first 16 Base64 chars of fast_hash(service_name, slow_hash(password)).
+# - Main computation is: fast_hash(service_name, slow_hash(password, salt_of_passphrase)).
 # - If the service name starts with a full stop (.), use Base64 (15 characters prepended by full stop).
 # - Otherwise, use Base26 (16 characters).
 # - Slow hash is computed while you type your service name.
