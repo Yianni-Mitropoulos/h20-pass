@@ -149,7 +149,6 @@ h20-login() (
 # - Prints a short status message either way
 h20-logout() (
     keyname="h20/passphrase"
-
     if key_id=$(keyctl search @s user "$keyname" 2>/dev/null); then
         # Unlink from the session keyring and invalidate to be safe
         keyctl unlink "$key_id" @s >/dev/null 2>&1 || true
@@ -158,16 +157,15 @@ h20-logout() (
     else
         echo "No session key named '$keyname' found."
     fi
-
     unset keyname key_id
 )
 
 # h20-pass
-# -----------
+# --------
 # A deterministic password generator
 # - Formula is: first 16 Base64 chars of fast_hash(service_name, slow_hash(password)).
-# - If the service name starts with a full stop (.), use Base64 and append a full stop followed by 15 characters.
-# - Otherwise, use Base26 to generate the password.
+# - If the service name starts with a full stop (.), use Base64 (15 characters prepended by full stop).
+# - Otherwise, use Base26 (16 characters).
 # - Slow hash is computed while you type your service name.
 # - First 4 Base64 chars of the slow hash are printed to the terminal for confirmation.
 # - Uses Argon2id only (no SHA2/SHA3, no extra attack surface).
