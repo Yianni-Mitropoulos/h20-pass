@@ -1,1 +1,178 @@
-# htzero-pass
+# Hero To Zero Pass
+
+## Purpose
+
+Super minimal and auditable deterministic password generator for Linux, written entirely in Bash.  
+Designed for use with QubesOS.
+
+## Features
+
+- Minimal attack surface
+- No internet or network involvement
+- Avoids insecure fallbacks
+- Brutal Argon2id parameters
+- Hash of password computed while you enter service name
+- No unnecessary cryptographic primitives (no SHA2/SHA3)
+- No unnecessary "security theatre"
+- Both Base26 and Base64 outputs supported
+
+## This tool does NOT:
+
+- Store your service names  
+- Track or log what you do
+- Support insecure fallbacks  
+- Require internet access  
+- Require updates
+
+## Requirements
+
+- Linux only  
+- Scripts provided for Debian and Fedora  
+- Use an LLM if you need to port to other platforms
+
+## Security Note
+
+This tool is **deterministic**: same inputs produce the same output. Anyone with **your passphrase** and **master password** can generate all of your service passwords.
+
+The tool stores only a **session-bound pepper** (a secret value stored temporarily in the kernel keyring and only in RAM) - nothing is written to disk.
+
+However, if an attacker compromises the VM during the session, they could:
+- Read the pepper from RAM, or
+- Log your keystrokes, or
+- Read the clipboard (generated passwords are copied there)
+
+**Best practice:**
+- Run in a **dedicated disposable VM**  
+- Ensure this VM has **strictly no internet access**  
+- Do not paste anything into this VM, ever  
+- Do not update this VM without good reason  
+- Never type your **master passphrase** or **password** into another VM
+
+## Installation
+
+Copy and paste the appropriate version of the script into your terminal, then restart the terminal or run `source ~/.bashrc` (or `source /etc/bash.bashrc` for all users). If you're unsure which version to use for your system, ask AI.
+
+NOTE: This installs the functions for **all users**.
+
+## Uninstallation
+
+To uninstall, edit the file you appended the functions to and remove them:  
+- **Fedora**: `/etc/bashrc`  
+- **Debian**: `/etc/bash.bashrc`  
+
+## Overview
+
+Given:
+- **Passphrase** (entered once per session; stored temporarily in keyring)  
+- **Master password** (entered every time)
+- **Service name** (entered every time)
+
+It deterministically:
+- Produces a 16-character password for that service
+- Copies the password to the system clipboard for pasting  
+
+If you want to track services or service names, you have to do that yourself, preferably in a different VM altogether.
+
+## Usage
+
+After installing, close and reopen your shell, or run the `source` command (e.g., `source ~/.bashrc` or `source /etc/bash.bashrc` for all users). Then type `h20-login`, and enter a passphrase. Your computer will take a few moments to process it.
+
+After that, you can use `h20-pass` to generate service passwords. Once you're done, you can use `h20-logout` to clear the password.
+
+## Base26 vs Base64
+
+By default, `h20-pass` uses **Base26**. This ensures that it's easy to type your service passwords into your smartphone.  
+
+If a website requires special characters, you may prefer to use **Base64** mode. To do this, prepend a full stop (`.`) to the service name. This also has the effect of appending a full stop (`.`) to the derived password, to ensure you have at least one special character.
+
+**Example:**
+
+**Master password**: foobar  
+**Service name**: amazon  
+Copies `bpeyfpntusrvajlg` to clipboard.
+
+**Master password**: foobar  
+**Service name**: `.amazon`  
+Copies `.Xpqd3iPtejUC0r3` to clipboard.
+
+## General Advice
+
+Keep everything (passphrase, password, service names) **lowercase**, unless you have a good reason to do otherwise. This ensures that you can also type things into your phone, if needed.
+
+## Passphrase Advice
+
+You only have to type your **passphrase** once per session, so it might as well be long.
+
+If you're not obsessive about security, you can just use your full name:
+
+    yiannimitropoulos
+
+This salts the rest of what you do, helping to protect against precomputation attacks.
+
+If you want an extra level of protection, keep your **passphrase secret**, and use it as a pepper. I recommend using **pen and paper** to come up with a limerick or short poem, like so:
+
+    haileyhigginshandedfood  
+    tosillymillyjacksonrude
+
+Destroy the paper only once you can easily remember the passphrase.
+
+Also, be sure to **log in with your passphrase BEFORE starting any qubes with access to your camera**. That way, even if someone is able to film your hands while you're typing your password, they still won't have your passphrase, and thus cannot recover any of your service passwords.
+
+## Master Password Advice
+
+As you must type your **master password** every single time you want to generate a service password, **maximizing entropy-per-keystroke** is essential. I recommend using 16 random lowercase characters. This ensures that you can easily type your master password into a phone if needed.
+
+To generate these characters:
+1. Roll two dice, call them X and Y, for each character.
+2. Compute `6X + Y`.
+3. Use the following lookup table to get the character, and roll again (R/A) if the aforementioned value exceeds 25.
+
+| Value | Char |
+|-------|------|
+| 0     | a    |
+| 1     | b    |
+| 2     | c    |
+| 3     | d    |
+| 4     | e    |
+| 5     | f    |
+| 6     | g    |
+| 7     | h    |
+| 8     | i    |
+| 9     | j    |
+| 10    | k    |
+| 11    | l    |
+| 12    | m    |
+| 13    | n    |
+| 14    | o    |
+| 15    | p    |
+| 16    | q    |
+| 17    | r    |
+| 18    | s    |
+| 19    | t    |
+| 20    | u    |
+| 21    | v    |
+| 22    | w    |
+| 23    | x    |
+| 24    | y    |
+| 25    | z    |
+| 26    | R/A  |
+| 27    | R/A  |
+| 28    | R/A  |
+| 29    | R/A  |
+| 30    | R/A  |
+| 31    | R/A  |
+| 32    | R/A  |
+| 33    | R/A  |
+| 34    | R/A  |
+| 35    | R/A  |
+
+## Attacks and Mitigations
+
+- **Brute force without quantum assistance** (not feasible, too many combinatorial possibilities)
+- **Brute force with quantum assistance** (not feasible, as Argon2id uses a lot of memory, and quantum memory is fragile and expensive)
+- **Supply chain attacks** (mitigation: `h20-pass` never needs updating)
+- **QubesOS sys-usb compromise** (mitigation: use a non-USB keyboard, e.g., PS/2)
+- **Filming you with your own webcam** (mitigation: do NOT open any qubes with camera access until after you've logged in with your passphrase)
+- **Someone sits down at your unlocked computer and gets the hash of your passphrase** (mitigation: use a strong password, keep your computer locked)
+- **Cold boot attacks** (mitigation: use a terminal/memory allocator that reliably clears memory after use)
+- **Xen/QubesOS dom0 compromise** (mitigation: run for the hills!)
