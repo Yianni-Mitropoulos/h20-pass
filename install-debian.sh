@@ -77,7 +77,6 @@ base26_reduce() {
 # - Derives an Argon2id encoded master string from a passphrase and fixed salt
 # - Stores/updates it as a 'user' key in the session keyring (@s) named "h20/passphrase"
 # - Prints a 4-character confirmation tag from the encoded hash tail for verification
-# - Uses only Argon2id with hard-coded parameters (no env vars)
 h20-login() (
     keyname="h20/passphrase"
 
