@@ -20,7 +20,6 @@ Designed for use with QubesOS.
 
 - Store your service names  
 - Track or log what you do  
-- Support insecure fallbacks  
 - Require internet access  
 - Require updates
 
@@ -34,19 +33,17 @@ Designed for use with QubesOS.
 
 Nothing is ever written to disk; the tool stores only a **session-bound pepper** in RAM.
 
-However, since this tool is **deterministic**: same inputs produce the same output. Anyone with **your passphrase** and **master password** can generate all of your service passwords.
-
-However, if an attacker compromises the VM during the session, they could:  
-- Read the pepper from RAM, or  
-- Log your keystrokes, or  
+However, if an attacker can compromise a program running in the same VM, they can:  
+- Read the pepper from RAM, and
+- Log your keystrokes, and
 - Read the clipboard (generated passwords are copied there)
 
-**Best practice:**  
+To mitigate these risks, follow these best practices:
 - Run in a **dedicated disposable VM**  
 - Ensure this VM has **strictly no internet access**  
 - Do not paste anything into this VM, ever  
 - Do not update this VM without good reason  
-- Never type your **master passphrase** or **password** into another VM
+- Never type your **master passphrase** or **password** into another VM or untrusted device
 
 ## Installation
 
