@@ -87,12 +87,12 @@ If a website requires special characters, you may prefer to use **Base64** mode.
 
 **Example:**
 
-**Master password**: foobar  
-**Service name**: amazon  
+**Master password**: `foobar`
+**Service name**: `amazon`
 Copies `bpeyfpntusrvajlg` to clipboard.
 
-**Master password**: foobar  
-**Service name**: `.amazon`  
+**Master password**: `foobar`
+**Service name**: `.amazon`
 Copies `.Xpqd3iPtejUC0r3` to clipboard.
 
 ## General Advice
