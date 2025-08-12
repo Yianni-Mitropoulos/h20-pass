@@ -7,19 +7,19 @@ Designed for use with QubesOS.
 
 ## Features
 
-- Minimal attack surface
-- No internet or network involvement
-- Avoids insecure fallbacks
-- Brutal Argon2id parameters
-- Hash of password computed while you enter service name
-- No unnecessary cryptographic primitives (no SHA2/SHA3)
-- No unnecessary "security theatre"
-- Both Base26 and Base64 outputs supported
+- Minimal attack surface  
+- No internet or network involvement  
+- Avoids insecure fallbacks  
+- Brutal Argon2id parameters  
+- Hash of password computed while you enter service name  
+- No unnecessary cryptographic primitives (no SHA2/SHA3)  
+- No unnecessary "security theatre"  
+- Both Base26 and Base64 outputs supported  
 
 ## This tool does NOT:
 
 - Store your service names  
-- Track or log what you do
+- Track or log what you do  
 - Support insecure fallbacks  
 - Require internet access  
 - Require updates
@@ -32,16 +32,16 @@ Designed for use with QubesOS.
 
 ## Security Note
 
-This tool is **deterministic**: same inputs produce the same output. Anyone with **your passphrase** and **master password** can generate all of your service passwords.
+Nothing is ever written to disk; the tool stores only a **session-bound pepper** in RAM.
 
-The tool stores only a **session-bound pepper** (a secret value stored temporarily in the kernel keyring and only in RAM) - nothing is written to disk.
+However, since this tool is **deterministic**: same inputs produce the same output. Anyone with **your passphrase** and **master password** can generate all of your service passwords.
 
-However, if an attacker compromises the VM during the session, they could:
-- Read the pepper from RAM, or
-- Log your keystrokes, or
+However, if an attacker compromises the VM during the session, they could:  
+- Read the pepper from RAM, or  
+- Log your keystrokes, or  
 - Read the clipboard (generated passwords are copied there)
 
-**Best practice:**
+**Best practice:**  
 - Run in a **dedicated disposable VM**  
 - Ensure this VM has **strictly no internet access**  
 - Do not paste anything into this VM, ever  
@@ -58,26 +58,29 @@ NOTE: This installs the functions for **all users**.
 
 To uninstall, edit the file you appended the functions to and remove them:  
 - **Fedora**: `/etc/bashrc`  
-- **Debian**: `/etc/bash.bashrc`  
+- **Debian**: `/etc/bash.bashrc`
 
 ## Overview
 
-Given:
+Given:  
 - **Passphrase** (entered once per session; stored temporarily in keyring)  
-- **Master password** (entered every time)
+- **Master password** (entered every time)  
 - **Service name** (entered every time)
 
-It deterministically:
-- Produces a 16-character password for that service
+It deterministically:  
+- Produces a 16-character password for that service  
 - Copies the password to the system clipboard for pasting  
 
 If you want to track services or service names, you have to do that yourself, preferably in a different VM altogether.
 
 ## Usage
 
-After installing, close and reopen your shell, or run the `source` command (e.g., `source ~/.bashrc` or `source /etc/bash.bashrc` for all users). Then type `h20-login`, and enter a passphrase. Your computer will take a few moments to process it.
+After installing, close and reopen your shell, or run the `source` command (e.g., `source ~/.bashrc` or `source /etc/bash.bashrc` for all users).
 
-After that, you can use `h20-pass` to generate service passwords. Once you're done, you can use `h20-logout` to clear the password.
+Provides three commands:  
+- `h20-login`  (Use this at the start of each session.)  
+- `h20-pass`   (Produces a service password from a master password and service name.)  
+- `h20-logout` (Clears your passphrase hash from the session keyring.)
 
 ## Base26 vs Base64
 
@@ -87,17 +90,17 @@ If a website requires special characters, you may prefer to use **Base64** mode.
 
 **Example:**
 
-**Master password**: `foobar`   
-**Service name**: `amazon`   
+**Master password**: `foobar`  
+**Service name**: `amazon`  
 Copies `bpeyfpntusrvajlg` to clipboard.
 
-**Master password**: `foobar`   
-**Service name**: `.amazon`   
+**Master password**: `foobar`  
+**Service name**: `.amazon`  
 Copies `.Xpqd3iPtejUC0r3` to clipboard.
 
 ## General Advice
 
-Keep everything (passphrase, password, service names) **lowercase**, unless you have a good reason to do otherwise. This ensures that you can also type things into your phone, if needed.
+Keep everything (passphrase, password, service names) **lowercase**, unless you have a good reason to do otherwise. This ensures that you can also use `h20-pass` on your phone, if you're forced to (Termux, etc.).
 
 ## Passphrase Advice
 
@@ -122,9 +125,9 @@ Also, be sure to **log in with your passphrase BEFORE starting any qubes with ac
 
 As you must type your **master password** every single time you want to generate a service password, **maximizing entropy-per-keystroke** is essential. I recommend using 16 random lowercase characters. This ensures that you can easily type your master password into a phone if needed.
 
-To generate these characters:
-1. Roll two dice, call them X and Y, for each character.
-2. Compute `6X + Y`.
+To generate these characters:  
+1. Roll two dice, call them X and Y, for each character.  
+2. Compute `6X + Y`.  
 3. Use the following lookup table to get the character, and roll again (R/A) if the aforementioned value exceeds 25.
 
 | Value | Char |
@@ -168,11 +171,12 @@ To generate these characters:
 
 ## Attacks and Mitigations
 
-- **Brute force without quantum assistance** (not feasible, too many combinatorial possibilities)
-- **Brute force with quantum assistance** (not feasible, as Argon2id uses a lot of memory, and quantum memory is fragile and expensive)
-- **Supply chain attacks** (mitigation: `h20-pass` never needs updating)
-- **QubesOS sys-usb compromise** (mitigation: use a non-USB keyboard, e.g., PS/2)
-- **Filming you with your own webcam** (mitigation: do NOT open any qubes with camera access until after you've logged in with your passphrase)
-- **Someone sits down at your unlocked computer and gets the hash of your passphrase** (mitigation: use a strong password, keep your computer locked)
-- **Cold boot attacks** (mitigation: use a terminal/memory allocator that reliably clears memory after use)
+- **Brute force without quantum assistance** (not feasible, too many combinatorial possibilities)  
+- **Brute force with quantum assistance** (not feasible, as Argon2id uses a lot of memory, and quantum memory is fragile and expensive)  
+- **Supply chain attacks** (mitigation: `h20-pass` never needs updating)  
+- **WiFi keyboard compromise** (mitigation: use reputable WiFi keyboards, or avoid them altogether)  
+- **QubesOS sys-usb compromise** (mitigation: use a non-USB keyboard, e.g., PS/2)  
+- **Filming you with your own webcam** (mitigation: do NOT open any qubes with camera access until after you've logged in with your passphrase)  
+- **Someone sits down at your unlocked computer and gets the hash of your passphrase** (mitigation: use a strong password, keep your computer locked)  
+- **Cold boot attacks** (mitigation: use a terminal/memory allocator that reliably clears memory after use)  
 - **Xen/QubesOS dom0 compromise** (mitigation: run for the hills!)
