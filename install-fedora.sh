@@ -120,9 +120,9 @@ h20-login() (
     # Store into the session keyring (@s) as a 'user' key
     if key_id=$(keyctl search @s user "$keyname" 2>/dev/null); then
         if keyctl update "$key_id" "$encoded" >/dev/null 2>&1; then
-            echo "Updated session keyring entry '$keyname' (key id: $key_id)."
+            echo "Updated session keyring entry '$keyname'."
         else
-            echo "ERROR: failed to update existing key '$keyname' (id: $key_id)."
+            echo "ERROR: failed to update existing key '$keyname'."
             unset encoded tail_b64 confirm key_id
             return 1
         fi
