@@ -4,8 +4,8 @@
 # WARNING: For simplicity, this script is not idempotent. This means that
 # running it repeatedly will append these functions repeatedly. Extra copies
 # should not cause any issues for your computer. Nevertheless, they can be
-# cleared up by navigating to /etc/bash.bashrc and manually deleting the
-# repeated definitions.
+# cleared up by navigating to /etc/bashrc and manually deleting the repeated
+# definitions.
 # =============================================================================
 #
 # MIT License

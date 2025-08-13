@@ -2,8 +2,7 @@
 
 ## Purpose
 
-Super minimal and auditable deterministic password generator for Linux, written entirely in Bash.  
-Designed for use with QubesOS.
+Minimal and auditable deterministic password generator for Linux, written entirely in Bash. Designed for use with QubesOS.
 
 ## Features
 
