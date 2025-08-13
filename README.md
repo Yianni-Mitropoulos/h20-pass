@@ -128,13 +128,6 @@ To generate these characters:
 
 | Value | Char |
 |-------|------|
-| 0     | a    |
-| 1     | b    |
-| 2     | c    |
-| 3     | d    |
-| 4     | e    |
-| 5     | f    |
-| 6     | g    |
 | 7     | h    |
 | 8     | i    |
 | 9     | j    |
@@ -154,16 +147,23 @@ To generate these characters:
 | 23    | x    |
 | 24    | y    |
 | 25    | z    |
-| 26    | R/A  |
-| 27    | R/A  |
-| 28    | R/A  |
-| 29    | R/A  |
-| 30    | R/A  |
-| 31    | R/A  |
-| 32    | R/A  |
+| 26    | a    |
+| 27    | b    |
+| 28    | c    |
+| 29    | d    |
+| 30    | e    |
+| 31    | f    |
+| 32    | g    |
 | 33    | R/A  |
 | 34    | R/A  |
 | 35    | R/A  |
+| 36    | R/A  |
+| 37    | R/A  |
+| 38    | R/A  |
+| 39    | R/A  |
+| 40    | R/A  |
+| 41    | R/A  |
+| 42    | R/A  |
 
 ## Attacks and Mitigations
 
