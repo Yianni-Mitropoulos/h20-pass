@@ -8,12 +8,12 @@ Minimal and auditable deterministic password generator for Linux, written entire
 
 - Minimal attack surface  
 - No internet or network involvement  
-- Avoids insecure fallbacks  
-- Brutal Argon2id parameters  
-- Hash of password computed while you enter service name  
-- No unnecessary cryptographic primitives (no SHA2/SHA3)  
-- No unnecessary "security theatre"  
-- Both Base26 and Base64 outputs supported  
+- Base26 and Base64 outputs supported
+- Feels responsive (password password computed while you enter the service name)
+- Avoids insecure fallbacks
+- Decently strong Argon2id parameters, tuned to work comfortably on mobile
+- Uses large hashes (2048 bits) to help protect against cold-boot vulnerabilities
+- No unnecessary cryptographic primitives (no SHA2/SHA3) and no "security theatre"  
 
 ## This tool does NOT:
 

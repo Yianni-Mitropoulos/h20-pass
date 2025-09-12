@@ -41,14 +41,14 @@ until sudo dnf -y install keyutils; do sleep 1; done
 # Append all functions to /etc/bashrc (retry until success)
 # Change this to ~/.bashrc if you want it for just one user.
 until sudo tee -a /etc/bashrc > /dev/null <<'EOF'
-# base26_reduce
-# -------------
+# h0-base26-reduce
+# ----------------
 # Accepts a string.
 # Maps each byte to 'a'..'z' via (ord % 26) + 97
 # Does not handle carries or overflows. This is a bytewise utility
-# base26_reduce STRING
+# h0-base26-reduce STRING
 # same-length mapping: each input byte -> 'a'..'z' via (ord % 26) + 97
-base26_reduce() {
+h0-base26-reduce() {
     local s=$1
     LC_ALL=C  # byte-wise
 
@@ -71,26 +71,23 @@ base26_reduce() {
     echo
 }
 
-# h20-login
-# ---------
-# Session key setup for h20-pass
+# h0-login
+# --------
+# Session key setup for h0-pass
 # - Derives an Argon2id encoded master string from a passphrase and fixed salt
-# - Stores/updates it as a 'user' key in the session keyring (@s) named "h20/passphrase"
+# - Stores/updates it as a 'user' key in the session keyring (@s) named "h0/passphrase"
 # - Prints a 4-character confirmation tag from the encoded hash tail for verification
-h20-login() (
-    keyname="h20/passphrase"
+h0-login() (
+    keyname="h0/passphrase"
 
     # Disable job control to avoid interference in subshells
-    set +m
+    set +mx -e -o pipefail
 
-    # Save current terminal settings; always restore on exit
-    orig_stty=$(stty -g)
-    trap 'stty "$orig_stty"' EXIT
+    # Disable core dumps in this subshell
+    ulimit -S -c 0
 
     # Prompt for passphrase (hidden)
-    stty -echo
-    read -r -p "Passphrase: " pass
-    stty echo
+    read -rs -p "Passphrase: " pass
     echo
 
     if [ -z "$pass" ]; then
@@ -101,7 +98,7 @@ h20-login() (
     # Derive Argon2id encoded string
     encoded=$(
         echo -n "$pass" |
-            argon2 "h20-login" -id -t 1 -m 21 -p 2 -l 32 2>/dev/null |
+            argon2 "h0-login" -id -t 8 -m 18 -p 2 -l 256 2>/dev/null |
             awk '/^Encoded:/ {print $2}'
     )
     if [ -z "$encoded" ]; then
@@ -140,14 +137,14 @@ h20-login() (
     unset encoded tail_b64 confirm key_id keyname
 )
 
-# h20-logout
-# ----------
-# Session key cleanup for h20-pass
-# - Looks up the 'user' key "h20/passphrase" in the session keyring (@s)
+# h0-logout
+# ---------
+# Session key cleanup for h0-pass
+# - Looks up the 'user' key "h0/passphrase" in the session keyring (@s)
 # - Unlinks it from the session keyring and invalidates it
 # - Prints a short status message either way
-h20-logout() (
-    keyname="h20/passphrase"
+h0-logout() (
+    keyname="h0/passphrase"
     if key_id=$(keyctl search @s user "$keyname" 2>/dev/null); then
         # Unlink from the session keyring and invalidate to be safe
         keyctl unlink "$key_id" @s >/dev/null 2>&1 || true
@@ -159,7 +156,7 @@ h20-logout() (
     unset keyname key_id
 )
 
-# h20-pass
+# h0-pass
 # --------
 # A deterministic password generator
 # - Main computation is: fast_hash(service_name, slow_hash(password, salt_of_passphrase)).
@@ -168,40 +165,35 @@ h20-logout() (
 # - Slow hash is computed while you type your service name.
 # - First 4 Base64 chars of the slow hash are printed to the terminal for confirmation.
 # - Uses Argon2id only (no SHA2/SHA3, no extra attack surface).
-# - Salt for the slow hash is read from the session keyring entry: user "h20/passphrase".
-h20-pass() (
+# - Salt for the slow hash is read from the session keyring entry: user "h0/passphrase".
+h0-pass() (
     # Disable job control to avoid interference in subshells
-    set +m
+    set +mx -e -o pipefail
 
-    # Save current terminal settings so they can be restored later
-    orig_stty=$(stty -g)
-
-    # Ensure terminal settings are restored on exit, even if interrupted
-    trap 'stty "$orig_stty"' EXIT
+    # Disable core dumps in this subshell
+    ulimit -S -c 0
 
     # Fetch salt from session keyring (@s)
-    if key_id=$(keyctl search @s user "h20/passphrase" 2>/dev/null); then
+    if key_id=$(keyctl search @s user "h0/passphrase" 2>/dev/null); then
         slow_salt=$(keyctl read "$key_id" 2>/dev/null)
     else
-        echo "ERROR: No session key 'h20/passphrase' found in the session keyring."
-        echo "Hint: run 'h20-login' first to create it, then try again."
+        echo "ERROR: No session key 'h0/passphrase' found in the session keyring."
+        echo "Hint: run 'h0-login' first to create it, then try again."
         exit 1
     fi
     if [ -z "$slow_salt" ]; then
-        echo "ERROR: Failed to read salt from session key 'h20/passphrase'."
+        echo "ERROR: Failed to read salt from session key 'h0/passphrase'."
         exit 1
     fi
 
     # Get master password (hidden)
-    stty -echo
-    read -r -p "Master password: " master
-    stty echo
+    read -rs -p "Master password: " master
     echo
 
     # Start master hash as a coprocess (salt comes from keyring)
     coproc {
         echo -n "$master" |
-            argon2 "$slow_salt" -id -t 1 -m 21 -p 2 -l 32 2>/dev/null |
+            argon2 "$slow_salt" -id -t 8 -m 18 -p 2 -l 256 2>/dev/null |
             grep '^Encoded:' | awk '{print $2}'
         unset slow_salt
     }
@@ -229,12 +221,12 @@ h20-pass() (
     else
         # Use Base26 (no modification needed)
         pass16=${site_b64:0:16}
-        pass16=$(base26_reduce "$pass16")
+        pass16=$(h0-base26-reduce "$pass16")
         mode="base26"
     fi
 
     # Copy to clipboard (two loops to give time for pasting)
-    echo -n "$pass16" | xclip -selection clipboard -loops 2
+    echo -n "$pass16" | xclip -selection clipboard -in
 
     # Print confirmation tag from slow hash
     tag_b64=$(echo "$password_hash" | awk -F'$' '{print $NF}')
